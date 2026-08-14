@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifi - A Better Way to Find Local Businesses</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    // You can extend your theme here if needed
+                }
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --base: #4f6e4e;
+            --pill-bg: #ffffff;
+            --pill-text: #374151; /* gray-700 */
+            --hover-text: #ffffff;
+            /* Timeline Colors */
+            --color-primary: #4f6e4e;
+            --color-secondary: #4b5563; /* gray-600 */
+            --color-background: #fdf6f6;
+            --color-line: #e5e7eb; /* gray-200 */
+        }
+
+        html.dark {
+            --pill-bg: #1f2937; /* gray-800 */
+            --pill-text: #d1d5db; /* gray-300 */
+            --color-secondary: #9ca3af; /* gray-400 */
+            --color-line: #374151; /* gray-700 */
+        }
+
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* More targeted transitions for better performance */
+        .theme-transition {
+             transition: background-color 0.35s ease-in-out, color 0.35s ease-in-out, border-color 0.35s ease-in-out;
+        }
+
+        .cta-button {
+            transition: all 0.3s ease;
+        }
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -5px rgba(79, 110, 78, 0.3);
+        }
+        .bn46 {
+            width: 150px;
+            height: 50px;
+        }
+        .bn45 {
+            width: 170px;
+            height: 50px;
+        }
+        .feature-card {
+             transition: all 0.3s ease;
+        }
+
+        html.dark .feature-card:hover {
+             box-shadow: 0 10px 15px -3px rgba(79, 110, 78, 0.2);
+        }
+        .feature-card:hover {
+            border-color: #4f6e4e; /* Dark Green */
+            box-shadow: 0 10px 20px -5px rgba(79, 110, 78, 0.15);
+        }
+
+        /* Styles for scroll animations */
+        .reveal {
+            opacity: 0;
+        }
+
+        /* Hero word animation style */
+        .hero-word-line {
+            overflow: hidden;
+            display: inline-block;
+        }
+        .hero-word {
+            display: inline-block;
+            transform: translateY(110%);
+        }
+
+        /* Pill Nav Styles */
+        .pill-nav-container {
+            position: absolute;
+            top: 1.5em;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99;
+        }
+
+        @media (max-width: 768px) {
+            .pill-nav-container {
+                width: 100%;
+                left: 0;
+                transform: none;
+                top: 1em;
+            }
+        }
+
+        .pill-nav {
+            --nav-h: 48px;
+            --logo: 36px;
+            --pill-pad-x: 24px; 
+            --pill-gap: 6px;
+            width: max-content;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+            .pill-nav {
+                width: 100%;
+                justify-content: space-between;
+                padding: 0 1rem;
+                background: transparent;
+            }
+        }
+
+        .pill-nav-items {
+            position: relative;
+            display: flex;
+            align-items: center;
+            height: var(--nav-h);
+            background: var(--pill-bg, #fff);
+            border-radius: 9999px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+        }
+        html.dark .pill-nav-items {
+            border-color: #374151;
+        }
+
+        .pill-logo {
+            width: var(--nav-h);
+            height: var(--nav-h);
+            border-radius: 50%;
+            background: var(--base, #000);
+            padding: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .pill-logo svg {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .pill-list {
+            list-style: none;
+            display: flex;
+            align-items: stretch;
+            gap: var(--pill-gap);
+            margin: 0;
+            padding: 4px;
+            height: 100%;
+        }
+
+        .pill-list > li {
+            display: flex;
+            height: 100%;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 0 var(--pill-pad-x);
+            background: transparent;
+            color: var(--pill-text, var(--base, #000));
+            text-decoration: none;
+            border-radius: 9999px;
+            box-sizing: border-box;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 1;
+            white-space: nowrap;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .pill.is-cta {
+            background: var(--base);
+            color: var(--hover-text);
+        }
+
+        .pill .hover-circle {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 1px;
+            height: 1px;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: var(--base, #000);
+            z-index: 1;
+            display: block;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .pill .label-stack {
+            position: relative;
+            display: inline-block;
+            line-height: 1;
+            z-index: 2;
+        }
+
+        .pill .pill-label {
+            position: relative;
+            z-index: 2;
+            display: inline-block;
+            line-height: 1;
+            will-change: transform;
+        }
+
+        .pill .pill-label-hover {
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: var(--hover-text, #fff);
+            z-index: 3;
+            display: inline-block;
+            will-change: transform, opacity;
+        }
+
+        .pill.is-active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            background: var(--base, #000);
+            border-radius: 50px;
+            z-index: 4;
+            border: 2px solid var(--pill-bg);
+        }
+        
+        .pill.is-cta.is-active::after {
+            background: var(--hover-text);
+            border-color: var(--base);
+        }
+
+
+        .desktop-only {
+            display: block;
+        }
+
+        .mobile-only {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .desktop-only {
+                display: none;
+            }
+
+            .mobile-only {
+                display: block;
+            }
+        }
+
+        .mobile-menu-button {
+            width: var(--nav-h);
+            height: var(--nav-h);
+            border-radius: 50%;
+            background: var(--base, #000);
+            border: none;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            cursor: pointer;
+            padding: 12px;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-button {
+                display: flex;
+            }
+        }
+
+        .hamburger-line {
+            width: 18px;
+            height: 2px;
+            background: var(--pill-bg, #fff);
+            border-radius: 1px;
+            transition: all 0.2s ease-in-out;
+            transform-origin: center;
+        }
+        html.dark .hamburger-line {
+            background: #fff;
+        }
+
+        .mobile-menu-button.is-open .hamburger-line:nth-child(1) {
+            transform: translateY(3.5px) rotate(45deg);
+        }
+        .mobile-menu-button.is-open .hamburger-line:nth-child(2) {
+             transform: translateY(-3.5px) rotate(-45deg);
+        }
+
+        .mobile-menu-popover {
+            position: fixed; /* Use fixed positioning */
+            top: calc(1em + 48px + 0.5em);
+            left: 1rem;
+            right: 1rem;
+            background: var(--pill-bg, #f0f0f0);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            z-index: 998;
+            opacity: 0;
+            transform-origin: top center;
+            visibility: hidden;
+            border: 1px solid #e5e7eb;
+        }
+        html.dark .mobile-menu-popover {
+            border-color: #374151; /* gray-700 */
+        }
+
+        .mobile-menu-list {
+            list-style: none;
+            margin: 0;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .mobile-menu-popover .mobile-menu-link:hover {
+            cursor: pointer;
+            background-color: #f3f4f6;
+        }
+        html.dark .mobile-menu-popover .mobile-menu-link:hover {
+            background-color: #374151; /* gray-700 */
+        }
+
+        .mobile-menu-popover .mobile-menu-link.is-cta {
+            background-color: var(--base);
+            color: var(--hover-text);
+        }
+        
+        /* Timeline Styles */
+        #journey-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: var(--color-line);
+            transform: translateX(-50%);
+            transform-origin: top;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 767px) {
+            #journey-line {
+                left: 24px; 
+            }
+            .timeline-item-content {
+                text-align: left !important;
+                padding-left: 4rem !important;
+                padding-right: 0 !important;
+            }
+             .timeline-item-content .inline-block {
+                margin-left: 0 !important;
+                margin-right: auto !important;
+                position: absolute;
+                left: 0;
+             }
+             .timeline-item-container {
+                display: block !important;
+                position: relative;
+             }
+        }
+    </style>
+</head>
+<body class="bg-white text-black dark:bg-gray-900 dark:text-gray-100 antialiased theme-transition">
+
+    <!-- Header -->
+    <div class="pill-nav-container">
+        <nav class="pill-nav">
+            <!-- Combined Logo and Brand Name -->
+            <a href="#" class="flex items-center gap-2 md:gap-3 md:mr-1.5" aria-label="Home">
+                <span class="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#4f6e4e] to-[#b9d9b7] tracking-tighter">Verifi</span>
+                <div class="pill-logo !mr-0 flex-shrink-0">
+                    <svg class="w-full h-full text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                       <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                   </svg>
+                </div>
+            </a>
+            
+            <div class="pill-nav-items desktop-only theme-transition">
+                 <ul class="pill-list">
+                      <li><a href="#features" class="pill theme-transition" data-section="features"><span class="hover-circle" aria-hidden="true"></span><span class="label-stack"><span class="pill-label">For Users</span><span class="pill-label-hover" aria-hidden="true">For Users</span></span></a></li>
+                      <li><a href="#for-business" class="pill theme-transition" data-section="for-business"><span class="hover-circle" aria-hidden="true"></span><span class="label-stack"><span class="pill-label">For Businesses</span><span class="pill-label-hover" aria-hidden="true">For Businesses</span></span></a></li>
+                      <li><a href="#process" class="pill theme-transition" data-section="process"><span class="hover-circle" aria-hidden="true"></span><span class="label-stack"><span class="pill-label">Our Process</span><span class="pill-label-hover" aria-hidden="true">Our Process</span></span></a></li>
+                      <li><a href="#for-business" class="pill is-cta theme-transition" data-section="for-business"><span class="hover-circle" aria-hidden="true"></span><span class="label-stack"><span class="pill-label">Get Verified</span><span class="pill-label-hover" aria-hidden="true">Get Verified</span></span></a></li>
+                      <li class="flex items-center">
+                        <button type="button" class="theme-toggle-btn flex-shrink-0 p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4f6e4e] ring-offset-white dark:ring-offset-gray-800 theme-transition" aria-label="Toggle theme">
+                            <svg class="theme-toggle-dark-icon h-5 w-5 hidden" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                            </svg>
+                            <svg class="theme-toggle-light-icon h-5 w-5 hidden" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3"></line>
+                                <line x1="12" y1="21" x2="12" y2="23"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                <line x1="1" y1="12" x2="3" y2="12"></line>
+                                <line x1="21" y1="12" x2="23" y2="12"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                            </svg>
+                         </button>
+                      </li>
+                 </ul>
+            </div>
+            
+            <button class="mobile-menu-button mobile-only" aria-label="Open Menu" aria-expanded="false" aria-controls="mobile-menu-popover">
+                 <span class="hamburger-line"></span>
+                 <span class="hamburger-line"></span>
+            </button>
+        </nav>
+    </div>
+    <div id="mobile-menu-popover" class="mobile-menu-popover mobile-only theme-transition">
+        <ul class="mobile-menu-list">
+            <li><a href="#features" class="mobile-menu-link text-gray-700 dark:text-gray-300 theme-transition">For Users</a></li>
+            <li><a href="#for-business" class="mobile-menu-link text-gray-700 dark:text-gray-300 theme-transition">For Businesses</a></li>
+            <li><a href="#process" class="mobile-menu-link text-gray-700 dark:text-gray-300 theme-transition">Our Process</a></li>
+            <li><a href="#for-business" class="mobile-menu-link is-cta theme-transition">Get Verified</a></li>
+            <li class="border-t border-gray-200 dark:border-gray-700 mx-2 my-2 theme-transition"></li>
+            <li>
+                <button type="button" class="theme-toggle-btn w-full mobile-menu-link flex justify-between items-center text-gray-700 dark:text-gray-300 theme-transition" aria-label="Toggle theme">
+                    <span class="theme-transition">Switch Theme</span>
+                    <span class="inline-flex">
+                        <svg class="theme-toggle-dark-icon h-6 w-6 hidden" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                        <svg class="theme-toggle-light-icon h-6 w-6 hidden" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                    </span>
+                </button>
+            </li>
+        </ul>
+    </div>
+
+
+    <main class="pt-28 md:pt-0">
+        <!-- Hero Section -->
+        <section class="bg-white dark:bg-gray-900 theme-transition">
+            <div class="container mx-auto px-6 py-16 md:py-32 text-center">
+                <h1 class="hero-title text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tighter text-black dark:text-white mb-4">
+                    A better way to find
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-[#4f6e4e] to-[#b9d9b7]">
+                        trusted
+                    </span>
+                     businesses.
+                </h1>
+                <p class="text-base md:text-xl text-gray-700 dark:text-gray-300 max-w-2xl mx-auto mb-10 reveal theme-transition">
+                    Verifi connects you with curated, editor-approved local businesses in Guyana. Say goodbye to endless scrolling and risky choices.
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 reveal">
+                    <a href="/" tabIndex="0"><img class="bn46" src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"alt="Download on the App Store"/></a>
+                    <a href="/" tabIndex="0"><img class="bn45" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/2560px-Google_Play_Store_badge_EN.svg.png" alt="Get it on Google Play"/></a>
+                </div>
+                <div class="mt-12 md:mt-16 px-4 reveal">
+                    <img src="https://images.unsplash.com/photo-1551650975-87deedd944c3?q=80&w=1974&auto.format&fit=crop" 
+                         alt="Verifi App showing a list of businesses" 
+                         onerror="this.onerror=null;this.src='https://placehold.co/1200x800/f8fbf8/4f6e4e?text=App+Preview';"
+                         loading="lazy"
+                         class="rounded-2xl shadow-2xl shadow-[#b9d9b7]/50 dark:shadow-[#4f6e4e]/20 w-full max-w-5xl mx-auto ring-1 ring-gray-200 dark:ring-gray-700 object-cover aspect-[3/2] max-h-[60vh] md:max-h-full">
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-16 md:py-24 bg-[#fdf6f6] dark:bg-gray-800 theme-transition">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12 md:mb-16 max-w-2xl mx-auto reveal">
+                       <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-black dark:text-white theme-transition">Simple, but powerful</h2>
+                       <p class="text-base md:text-lg text-gray-700 dark:text-gray-300 mt-4 theme-transition">Verifi is packed with features designed to save you time and help you choose with absolute confidence.</p>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                    <!-- Feature Card -->
+                    <div class="bg-white dark:bg-gray-900 p-6 md:p-8 rounded-2xl border border-gray-200 dark:border-gray-700 feature-card reveal theme-transition">
+                        <div class="text-[#4f6e4e] mb-4">
+                            <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>
+                        </div>
+                        <h3 class="text-lg md:text-xl font-bold text-black dark:text-white mb-2 theme-transition">Top 5 Recommendations</h3>
+                        <p class="text-gray-700 dark:text-gray-300 theme-transition text-sm md:text-base">Get 3-5 perfectly curated results instantly. No more decision fatigue.</p>
+                    </div>
+                     <!-- Feature Card -->
+                    <div class="bg-white dark:bg-gray-900 p-6 md:p-8 rounded-2xl border border-gray-200 dark:border-gray-700 feature-card reveal theme-transition">
+                        <div class="text-[#4f6e4e] mb-4">
+                           <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <h3 class="text-lg md:text-xl font-bold text-black dark:text-white mb-2 theme-transition">Verification Badge</h3>
+                        <p class="text-gray-700 dark:text-gray-300 theme-transition text-sm md:text-base">Look for the badge to choose businesses that have passed our rigorous checks.</p>
+                    </div>
+                     <!-- Feature Card -->
+                    <div class="bg-white dark:bg-gray-900 p-6 md:p-8 rounded-2xl border border-gray-200 dark:border-gray-700 feature-card reveal theme-transition">
+                        <div class="text-[#4f6e4e] mb-4">
+                           <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" /></svg>
+                        </div>
+                        <h3 class="text-lg md:text-xl font-bold text-black dark:text-white mb-2 theme-transition">Try Something New</h3>
+                        <p class="text-gray-700 dark:text-gray-300 theme-transition text-sm md:text-base">Discover curated "hidden gems" based on your preferences and time.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- App Icon Section -->
+        <section id="app-icon" class="py-16 md:py-24 bg-white dark:bg-gray-900 theme-transition">
+            <div class="container mx-auto px-6">
+                <div class="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+                    <div class="reveal">
+                        <div class="relative w-40 h-40 md:w-64 md:h-64 mx-auto md:mx-0">
+                            <!-- App Icon Background -->
+                            <div class="w-full h-full bg-gradient-to-br from-[#4f6e4e] to-[#6a8a69] rounded-[2.5rem] md:rounded-[3rem] shadow-2xl shadow-[#b9d9b7]/80 dark:shadow-[#4f6e4e]/20 flex items-center justify-center p-4 md:p-6">
+                                <!-- Verifi App Icon Image -->
+                                <img src="https://i.postimg.cc/cHNQGcL8/Generated-Image-September-01-2025-2-48-PM.jpg" alt="Verifi App Icon" class="w-full h-full object-cover rounded-full shadow-lg">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reveal text-center md:text-left">
+                        <span class="text-[#4f6e4e] font-semibold text-sm theme-transition">OUR ICON</span>
+                        <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-black dark:text-white mt-2 mb-6 theme-transition">A Symbol of Trust</h2>
+                        <p class="text-base md:text-lg text-gray-700 dark:text-gray-300 theme-transition">The Verifi icon is a friendly guardian of local trust. Its smiling, green character and soft, rounded form offer a warm welcome, while the bold check-mark pin makes a clear promise: this business is vetted and dependable. It’s an approachable seal of quality that feels both human and secure.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- For Businesses Section -->
+        <section id="for-business" class="py-16 md:py-24 bg-white dark:bg-gray-900 overflow-hidden theme-transition">
+            <div class="container mx-auto px-6">
+                <div class="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+                    <div class="reveal">
+                        <span class="text-[#4f6e4e] font-semibold text-sm theme-transition">FOR BUSINESS OWNERS</span>
+                        <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-black dark:text-white mt-2 mb-6 theme-transition">Connect with customers ready to buy.</h2>
+                        <p class="text-base md:text-lg text-gray-700 dark:text-gray-300 mb-8 theme-transition">Stop wasting money on unfiltered ads. Verifi puts your business in front of customers actively seeking high-quality, trusted services like yours.</p>
+                        <ul class="space-y-4 mb-10">
+                            <li class="flex items-start md:items-center space-x-3">
+                                <svg class="w-5 h-5 text-[#4f6e4e] flex-shrink-0 mt-1 md:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                <span class="text-gray-700 dark:text-gray-300 theme-transition text-sm md:text-base">Earn a Verification Badge to build instant trust.</span>
+                            </li>
+                            <li class="flex items-start md:items-center space-x-3">
+                                <svg class="w-5 h-5 text-[#4f6e4e] flex-shrink-0 mt-1 md:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                <span class="text-gray-700 dark:text-gray-300 theme-transition text-sm md:text-base">Receive qualified leads and booking requests.</span>
+                            </li>
+                            <li class="flex items-start md:items-center space-x-3">
+                                <svg class="w-5 h-5 text-[#4f6e4e] flex-shrink-0 mt-1 md:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                <span class="text-gray-700 dark:text-gray-300 theme-transition text-sm md:text-base">Get performance insights to track your growth.</span>
+                            </li>
+                        </ul>
+                         <a href="#" class="bg-[#4f6e4e] text-white font-bold py-3 px-8 rounded-lg cta-button inline-block text-sm md:text-base">Claim Your Business & Get Verified</a>
+                    </div>
+                    <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-2xl reveal theme-transition">
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto.format&fit=crop" 
+                             alt="Business analytics dashboard with charts and graphs" 
+                             onerror="this.onerror=null;this.src='https://placehold.co/600x450/e5e7eb/4f6e4e?text=Dashboard';"
+                             loading="lazy"
+                             class="rounded-xl shadow-lg w-full max-h-[50vh] md:max-h-full object-cover">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Verification Process Section -->
+        <section id="process" class="py-16 md:py-24 bg-[#fdf6f6] dark:bg-gray-800 theme-transition">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12 md:mb-16 max-w-3xl mx-auto reveal">
+                       <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-black dark:text-white theme-transition">Our Trust & Verification Engine</h2>
+                       <p class="text-base md:text-lg text-gray-700 dark:text-gray-300 mt-4 theme-transition">The Verifi badge is a promise of quality, backed by a rigorous, multi-step process. We believe in full transparency.</p>
+                </div>
+
+                <div id="journey-timeline" class="relative">
+                    <div id="journey-line" class="block"></div>
+                    <div class="space-y-12 md:space-y-16">
+                        
+                        <!-- Step 1 -->
+                        <div class="md:grid md:grid-cols-2 md:gap-8 items-center timeline-item-container">
+                            <div class="text-center md:text-right md:pr-8 timeline-item-content">
+                                <div class="inline-block bg-[var(--color-primary)] text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mb-4 md:ml-auto">1</div>
+                                <h3 class="text-xl md:text-2xl font-bold mb-2 text-gray-800 dark:text-gray-100 theme-transition">Automated Checks</h3>
+                                <p style="color: var(--color-secondary);" class="theme-transition text-sm md:text-base">Initial checks for business registration, phone verification, and online presence.</p>
+                            </div>
+                            <div class="hidden md:block"></div>
+                        </div>
+                        
+                        <!-- Step 2 -->
+                        <div class="md:grid md:grid-cols-2 md:gap-8 items-center timeline-item-container">
+                            <div class="hidden md:block"></div>
+                            <div class="text-center md:text-left md:pl-8 timeline-item-content">
+                                <div class="inline-block bg-[var(--color-primary)] text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mb-4 md:mr-auto">2</div>
+                                <h3 class="text-xl md:text-2xl font-bold mb-2 text-gray-800 dark:text-gray-100 theme-transition">Document Submission</h3>
+                                <p style="color: var(--color-secondary);" class="theme-transition text-sm md:text-base">Businesses submit proof of address, registration documents, and ID for review.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 3 -->
+                        <div class="md:grid md:grid-cols-2 md:gap-8 items-center timeline-item-container">
+                            <div class="text-center md:text-right md:pr-8 timeline-item-content">
+                                <div class="inline-block bg-[var(--color-primary)] text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mb-4 md:ml-auto">3</div>
+                                <h3 class="text-xl md:text-2xl font-bold mb-2 text-gray-800 dark:text-gray-100 theme-transition">Human Curation</h3>
+                                <p style="color: var(--color-secondary);" class="theme-transition text-sm md:text-base">Local editors review candidates, ensuring quality and adding their expert notes.</p>
+                            </div>
+                            <div class="hidden md:block"></div>
+                        </div>
+                        
+                        <!-- Step 4 -->
+                        <div class="md:grid md:grid-cols-2 md:gap-8 items-center timeline-item-container">
+                             <div class="hidden md:block"></div>
+                            <div class="text-center md:text-left md:pl-8 timeline-item-content">
+                                <div class="inline-block bg-[var(--color-primary)] text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mb-4 md:mr-auto">4</div>
+                                <h3 class="text-xl md:text-2xl font-bold mb-2 text-gray-800 dark:text-gray-100 theme-transition">On-Site Audit</h3>
+                                <p style="color: var(--color-secondary);" class="theme-transition text-sm md:text-base">Optional on-site visits or mystery shopping for our highest tier badge.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Final CTA -->
+        <section class="bg-white dark:bg-gray-900 theme-transition">
+            <div class="container mx-auto px-6 py-16 md:py-24 text-center">
+               <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-black dark:text-white mb-4 reveal theme-transition">Get started with Verifi today.</h2>
+               <p class="text-base md:text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto mb-10 reveal theme-transition">Join the waitlist to be the first to know when we launch. Business owners, claim your free listing and prepare for verification.</p>
+               <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 reveal">
+                    <button data-modal-trigger class="w-full sm:w-auto bg-[#4f6e4e] text-white font-bold py-3 px-6 md:px-8 rounded-lg cta-button text-sm md:text-base">Join User Waitlist</button>
+                    <a href="#for-business" class="w-full sm:w-auto bg-gray-100 text-black dark:bg-gray-700 dark:text-white font-bold py-3 px-6 md:px-8 rounded-lg transition hover:bg-gray-200 dark:hover:bg-gray-600 theme-transition text-sm md:text-base">Claim Business Listing</a>
+               </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#4f6e4e] text-white theme-transition">
+        <div class="container mx-auto px-6 py-16">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div class="col-span-1 md:col-span-2">
+                    <h4 class="text-lg font-semibold mb-3 theme-transition">Verifi</h4>
+                    <p class="text-green-100 max-w-sm theme-transition">The trusted, curated guide to Guyana's best local businesses. Our mission is to make finding quality services simple, safe, and fast.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-3 tracking-wide theme-transition">Navigate</h4>
+                    <ul class="space-y-2 text-green-100">
+                        <li><a href="#features" class="hover:text-white transition-colors theme-transition">For Users</a></li>
+                        <li><a href="#for-business" class="hover:text-white transition-colors theme-transition">For Businesses</a></li>
+                        <li><a href="#process" class="hover:text-white transition-colors theme-transition">Our Process</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-3 tracking-wide theme-transition">Legal</h4>
+                     <ul class="space-y-2 text-green-100">
+                        <li><a href="#" class="hover:text-white transition-colors theme-transition">Terms of Service</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors theme-transition">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors theme-transition">Contact Us</a></li>
+                     </ul>
+                </div>
+            </div>
+            <div class="mt-12 border-t border-[#3e563e] pt-8 text-center text-green-200 text-sm theme-transition">
+                <p>&copy; <span id="copyright-year">2025</span> Verifi. All rights reserved. Made with ❤️ in Guyana.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Waitlist Modal -->
+    <div id="waitlist-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-60 invisible opacity-0" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="bg-white dark:bg-gray-800 w-full max-w-md p-8 rounded-2xl shadow-xl transform scale-95 theme-transition" id="modal-content">
+        <!-- Form State -->
+        <div id="modal-form-state">
+          <div class="flex justify-between items-start">
+            <h2 id="modal-title" class="text-2xl font-bold text-gray-800 dark:text-white theme-transition">Join the Waitlist</h2>
+            <button id="modal-close-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition" aria-label="Close modal">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
+          <p class="text-gray-600 dark:text-gray-300 mt-2 mb-6 theme-transition">Be the first to know when Verifi launches. Enter your email below!</p>
+          <form id="waitlist-form">
+            <label for="email" class="sr-only">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="you@example.com" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4f6e4e] focus:border-[#4f6e4e] bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 theme-transition">
+            <button type="submit" class="w-full mt-4 bg-[#4f6e4e] text-white font-bold py-3 px-8 rounded-lg cta-button">Notify Me</button>
+          </form>
+        </div>
+        <!-- Success State -->
+        <div id="modal-success-state" class="hidden text-center">
+            <div class="mx-auto bg-green-100 rounded-full w-16 h-16 flex items-center justify-center">
+                <svg class="w-10 h-10 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-white mt-4 theme-transition">You're on the list!</h2>
+            <p class="text-gray-600 dark:text-gray-300 mt-2 theme-transition">Thank you for joining. We'll send you an email the moment we go live.</p>
+            <button id="modal-success-close-btn" class="w-full mt-6 bg-gray-200 dark:bg-gray-600 text-black dark:text-white font-bold py-3 px-8 rounded-lg transition hover:bg-gray-300 dark:hover:bg-gray-500 theme-transition">Close</button>
+        </div>
+      </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- THEME TOGGLE ---
+            function initThemeToggle() {
+                const toggleButtons = document.querySelectorAll('.theme-toggle-btn');
+                const lightIcons = document.querySelectorAll('.theme-toggle-light-icon');
+                const darkIcons = document.querySelectorAll('.theme-toggle-dark-icon');
+
+                const applyTheme = (theme, isInstant = false) => {
+                    const iconsToHide = theme === 'dark' ? darkIcons : lightIcons;
+                    const iconsToShow = theme === 'dark' ? lightIcons : darkIcons;
+
+                    if (isInstant) {
+                        document.documentElement.classList.toggle('dark', theme === 'dark');
+                        iconsToShow.forEach(icon => icon.classList.remove('hidden'));
+                        iconsToHide.forEach(icon => icon.classList.add('hidden'));
+                        return;
+                    }
+
+                    const tl = gsap.timeline();
+                    tl.to([...lightIcons, ...darkIcons], {
+                        rotate: '+=360',
+                        scale: 0,
+                        duration: 0.3,
+                        ease: 'power2.in',
+                        onComplete: () => {
+                            document.documentElement.classList.toggle('dark', theme === 'dark');
+                            iconsToShow.forEach(icon => icon.classList.remove('hidden'));
+                            iconsToHide.forEach(icon => icon.classList.add('hidden'));
+                        }
+                    }).to([...lightIcons, ...darkIcons], {
+                        rotate: '+=360',
+                        scale: 1,
+                        duration: 0.3,
+                        ease: 'power2.out'
+                    });
+                };
+
+                const savedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+                applyTheme(initialTheme, true);
+
+                toggleButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+                        localStorage.setItem('theme', newTheme);
+                        applyTheme(newTheme);
+                    });
+                });
+            }
+
+            // --- WAITLIST MODAL ---
+            function initWaitlistModal() {
+                const modal = document.getElementById('waitlist-modal');
+                if (!modal) return;
+
+                const modalTriggers = document.querySelectorAll('[data-modal-trigger]');
+                const closeButton = document.getElementById('modal-close-btn');
+                const successCloseButton = document.getElementById('modal-success-close-btn');
+                const modalContent = document.getElementById('modal-content');
+                const formState = document.getElementById('modal-form-state');
+                const successState = document.getElementById('modal-success-state');
+                const form = document.getElementById('waitlist-form');
+                
+                let lastFocusedElement;
+
+                const openModal = () => {
+                    lastFocusedElement = document.activeElement;
+                    gsap.to(modal, { autoAlpha: 1, duration: 0.3 });
+                    gsap.fromTo(modalContent, { scale: 0.9, y: 10 }, { scale: 1, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.75)' });
+                    modal.querySelector('input').focus();
+                };
+
+                const closeModal = () => {
+                    gsap.to(modal, { autoAlpha: 0, duration: 0.3 });
+                    gsap.to(modalContent, { scale: 0.9, y: 10, duration: 0.3, ease: 'power2.in' });
+                    if(lastFocusedElement) lastFocusedElement.focus();
+
+                    setTimeout(() => {
+                        formState.style.display = 'block';
+                        successState.style.display = 'none';
+                        form.reset();
+                    }, 300);
+                };
+
+                modalTriggers.forEach(trigger => trigger.addEventListener('click', openModal));
+                closeButton.addEventListener('click', closeModal);
+                successCloseButton.addEventListener('click', closeModal);
+                
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && modal.style.visibility === 'visible') closeModal();
+                });
+
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) closeModal();
+                });
+
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    gsap.timeline()
+                        .to(formState, { autoAlpha: 0, scale: 0.95, duration: 0.3, ease: 'power2.in' })
+                        .set(formState, { display: 'none' })
+                        .set(successState, { display: 'block', autoAlpha: 0, scale: 0.95 })
+                        .to(successState, { autoAlpha: 1, scale: 1, duration: 0.3, ease: 'power2.out' });
+                });
+            }
+
+            // --- MOBILE MENU ---
+            function initMobileMenu() {
+                const menuButton = document.querySelector('.mobile-menu-button');
+                const mobilePopover = document.querySelector('.mobile-menu-popover');
+                if (!menuButton || !mobilePopover) return;
+
+                gsap.set(mobilePopover, { scale: 0.95, autoAlpha: 0 });
+                const menuTl = gsap.timeline({ paused: true, reversed: true });
+                
+                menuTl.to(mobilePopover, {
+                    scale: 1,
+                    autoAlpha: 1,
+                    duration: 0.2,
+                    ease: 'power1.inOut'
+                });
+
+                menuButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    menuButton.classList.toggle('is-open');
+                    menuButton.setAttribute('aria-expanded', menuButton.classList.contains('is-open'));
+                    menuTl.reversed() ? menuTl.play() : menuTl.reverse();
+                });
+
+                const closeMenu = () => {
+                    if (menuTl.progress() > 0) {
+                        menuButton.classList.remove('is-open');
+                        menuButton.setAttribute('aria-expanded', 'false');
+                        menuTl.reverse();
+                    }
+                };
+                
+                mobilePopover.querySelectorAll('a, button').forEach(link => {
+                    if (!link.classList.contains('theme-toggle-btn')) {
+                        link.addEventListener('click', closeMenu);
+                    }
+                });
+                document.addEventListener('click', (e) => {
+                    if (!mobilePopover.contains(e.target) && !menuButton.contains(e.target)) {
+                        closeMenu();
+                    }
+                });
+                window.addEventListener('scroll', closeMenu);
+            }
+
+            // --- PILL NAV HOVER ANIMATIONS ---
+            function initPillNavAnimations() {
+                const pills = document.querySelectorAll('.pill');
+                pills.forEach(pill => {
+                    const hoverCircle = pill.querySelector('.hover-circle');
+                    const pillLabel = pill.querySelector('.pill-label');
+                    const pillLabelHover = pill.querySelector('.pill-label-hover');
+                    const isCta = pill.classList.contains('is-cta');
+                    
+                    if (!pillLabelHover) return;
+
+                    gsap.set(pillLabelHover, { y: '120%', opacity: 0 });
+                    gsap.set(hoverCircle, { scale: 0 });
+
+                    let hoverTl = gsap.timeline({ paused: true });
+                    hoverTl
+                        .to(hoverCircle, { scale: 120, duration: 0.5, ease: 'power3.inOut' })
+                        .to(pillLabel, { y: '-120%', opacity: 0, duration: 0.3, ease: 'power2.in' }, "-=0.45")
+                        .to(pillLabelHover, { y: '0%', opacity: 1, duration: 0.3, ease: 'power2.out' }, "-=0.35");
+                    
+                    pill.addEventListener('mouseenter', () => {
+                         if (!pill.classList.contains('is-active') && !isCta) {
+                             hoverTl.play();
+                         }
+                    });
+
+                    pill.addEventListener('mouseleave', () => {
+                        if (!pill.classList.contains('is-active') && !isCta) {
+                            hoverTl.reverse();
+                        }
+                    });
+                });
+            }
+            
+            // --- SCROLL-BASED ANIMATIONS ---
+            function initScrollBasedAnimations() {
+                gsap.registerPlugin(ScrollTrigger);
+
+                // Animate hero text on load
+                const heroTitle = document.querySelector('.hero-title');
+                if(heroTitle) {
+                    let newHTML = '';
+                    heroTitle.childNodes.forEach(node => {
+                        if (node.nodeType === Node.TEXT_NODE) {
+                            const text = node.textContent;
+                            newHTML += text.replace(/(\S+)/g, '<span class="hero-word-line"><span class="hero-word">$1</span></span>');
+                        } else if (node.nodeType === Node.ELEMENT_NODE) {
+                            newHTML += `<span class="hero-word-line"><span class="hero-word">${node.outerHTML}</span></span>`;
+                        }
+                    });
+                    heroTitle.innerHTML = newHTML;
+
+                    gsap.to('.hero-word', {
+                        y: 0,
+                        stagger: 0.08,
+                        duration: 1,
+                        ease: 'power3.out',
+                        delay: 0.3
+                    });
+                }
+                
+                // General reveal animations
+                const revealElements = document.querySelectorAll('.reveal');
+                revealElements.forEach(el => {
+                    gsap.fromTo(el,
+                        { autoAlpha: 0, y: 40 },
+                        {
+                            autoAlpha: 1,
+                            y: 0,
+                            duration: 1,
+                            ease: 'power3.out',
+                            scrollTrigger: {
+                                trigger: el,
+                                start: 'top 90%',
+                                toggleActions: 'play none none none'
+                            }
+                        }
+                    );
+                });
+
+                // Special hover animation for feature cards
+                const cards = document.querySelectorAll('.feature-card');
+                cards.forEach(card => {
+                    const icon = card.querySelector('svg');
+                    card.addEventListener('mouseenter', () => {
+                        gsap.to(card, { y: -8, scale: 1.02, duration: 0.3, ease: 'power2.out' });
+                        gsap.to(icon, { scale: 1.1, rotate: 5, duration: 0.3, ease: 'power2.out' });
+                    });
+                    card.addEventListener('mouseleave', () => {
+                        gsap.to(card, { y: 0, scale: 1, duration: 0.3, ease: 'power2.out' });
+                        gsap.to(icon, { scale: 1, rotate: 0, duration: 0.3, ease: 'power2.out' });
+                    });
+                });
+                        // Creative Timeline scroll animation
+                const timeline = document.getElementById('journey-timeline');
+                if (timeline) {
+                    const line = document.getElementById('journey-line');
+                    const items = gsap.utils.toArray('.timeline-item-container');
+                    
+                    gsap.set(line, { scaleY: 0 });
+                    
+                    // Animate the line drawing down the screen
+                    gsap.to(line, {
+                        scaleY: 1,
+                        ease: 'none',
+                        scrollTrigger: {
+                            trigger: timeline,
+                            start: 'top 50%',
+                            end: 'bottom 80%',
+                            scrub: true,
+                        }
+                    });
+
+                    // Animate each item as it enters the viewport
+                    items.forEach((item, index) => {
+                        const content = item.querySelector('.timeline-item-content');
+                        const numberCircle = content.querySelector('.inline-block');
+
+                        const isMobile = window.innerWidth <= 767;
+                        const isRight = !isMobile && index % 2 !== 0;
+                        const xFrom = isMobile ? 50 : (isRight ? 50 : -50);
+
+
+                        const itemTl = gsap.timeline({
+                            scrollTrigger: {
+                                trigger: item,
+                                start: 'top 80%',
+                                toggleActions: 'play none none reverse',
+                            }
+                        });
+
+                        itemTl.from(numberCircle, {
+                            scale: 0,
+                            rotate: -45,
+                            duration: 0.5,
+                            ease: 'back.out(1.7)'
+                        })
+                        .from(content, {
+                            autoAlpha: 0,
+                            x: xFrom,
+                            duration: 0.5,
+                            ease: 'power2.out'
+                        }, "-=0.4"); 
+                    });
+                }
+            }
+
+             // --- SCROLL-BASED ACTIVE NAV STATE ---
+            function initNavObserver() {
+                const sections = document.querySelectorAll('section[id]');
+                const navLinks = document.querySelectorAll('.pill-list .pill');
+                if (sections.length === 0 || navLinks.length === 0) return;
+                
+                const observerOptions = {
+                    root: null,
+                    rootMargin: '-50% 0px -50% 0px',
+                    threshold: 0
+                };
+
+                const sectionObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const id = entry.target.getAttribute('id');
+                            navLinks.forEach(link => {
+                                link.classList.remove('is-active');
+                                if (link.dataset.section === id) {
+                                    link.classList.add('is-active');
+                                }
+                            });
+                        }
+                    });
+                }, observerOptions);
+
+                sections.forEach(section => sectionObserver.observe(section));
+            }
+
+            // --- DYNAMIC COPYRIGHT YEAR ---
+            function initCopyrightYear() {
+                const yearSpan = document.getElementById('copyright-year');
+                if (yearSpan) {
+                    yearSpan.textContent = new Date().getFullYear();
+                }
+            }
+
+            // --- INITIALIZE ALL SCRIPTS ---
+            initThemeToggle();
+            initWaitlistModal();
+            initMobileMenu();
+            initPillNavAnimations();
+            initNavObserver();
+            initScrollBasedAnimations();
+            initCopyrightYear();
+        });
+    </script>
+</body>
+</html>
+
+
+
+
