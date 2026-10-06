@@ -84,7 +84,7 @@
 
         /* Styles for scroll animations */
         .reveal {
-            opacity: 0;
+            opacity: 1;
         }
 
         /* Hero word animation style */
@@ -403,6 +403,12 @@
                 position: relative;
              }
         }
+            [hidden] { display: none !important; }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto !important; }
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+            .reveal, .hero-word { opacity: 1 !important; transform: none !important; }
+        }
     </style>
 </head>
 <body class="bg-white text-black dark:bg-gray-900 dark:text-gray-100 antialiased theme-transition">
@@ -709,21 +715,21 @@
     </footer>
 
     <!-- Waitlist Modal -->
-    <div id="waitlist-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-60 invisible opacity-0" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div id="waitlist-modal" hidden tabindex="-1" aria-hidden="true" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-60 invisible opacity-0" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="bg-white dark:bg-gray-800 w-full max-w-md p-8 rounded-2xl shadow-xl transform scale-95 theme-transition" id="modal-content">
         <!-- Form State -->
         <div id="modal-form-state">
           <div class="flex justify-between items-start">
-            <h2 id="modal-title" class="text-2xl font-bold text-gray-800 dark:text-white theme-transition">Join the Waitlist</h2>
+            <h2 id="modal-title" class="text-2xl font-bold text-gray-800 dark:text-white theme-transition">Preview the Waitlist</h2>
             <button id="modal-close-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition" aria-label="Close modal">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
           </div>
-          <p class="text-gray-600 dark:text-gray-300 mt-2 mb-6 theme-transition">Be the first to know when Verifi launches. Enter your email below!</p>
+          <p id="waitlist-note" class="text-gray-600 dark:text-gray-300 mt-2 mb-6 theme-transition">This is a concept preview. No email will be saved or sent.</p>
           <form id="waitlist-form">
             <label for="email" class="sr-only">Email Address</label>
             <input type="email" id="email" name="email" placeholder="you@example.com" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4f6e4e] focus:border-[#4f6e4e] bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 theme-transition">
-            <button type="submit" class="w-full mt-4 bg-[#4f6e4e] text-white font-bold py-3 px-8 rounded-lg cta-button">Notify Me</button>
+            <button type="submit" class="w-full mt-4 bg-[#4f6e4e] text-white font-bold py-3 px-8 rounded-lg cta-button">Preview confirmation</button>
           </form>
         </div>
         <!-- Success State -->
@@ -733,8 +739,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white mt-4 theme-transition">You're on the list!</h2>
-            <p class="text-gray-600 dark:text-gray-300 mt-2 theme-transition">Thank you for joining. We'll send you an email the moment we go live.</p>
+            <h2 id="preview-title" class="text-2xl font-bold text-gray-800 dark:text-white mt-4 theme-transition">Preview complete</h2>
+            <p id="preview-note" class="text-gray-600 dark:text-gray-300 mt-2 theme-transition">No email was saved or sent. Sign-ups are not connected in this demo.</p>
             <button id="modal-success-close-btn" class="w-full mt-6 bg-gray-200 dark:bg-gray-600 text-black dark:text-white font-bold py-3 px-8 rounded-lg transition hover:bg-gray-300 dark:hover:bg-gray-500 theme-transition">Close</button>
         </div>
       </div>
@@ -743,54 +749,39 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
+            const motion = typeof gsap !== 'undefined' ? gsap : null;
+            const canAnimate = Boolean(motion) && !reducedMotion;
 
             // --- THEME TOGGLE ---
             function initThemeToggle() {
                 const toggleButtons = document.querySelectorAll('.theme-toggle-btn');
                 const lightIcons = document.querySelectorAll('.theme-toggle-light-icon');
                 const darkIcons = document.querySelectorAll('.theme-toggle-dark-icon');
-
-                const applyTheme = (theme, isInstant = false) => {
-                    const iconsToHide = theme === 'dark' ? darkIcons : lightIcons;
-                    const iconsToShow = theme === 'dark' ? lightIcons : darkIcons;
-
-                    if (isInstant) {
-                        document.documentElement.classList.toggle('dark', theme === 'dark');
-                        iconsToShow.forEach(icon => icon.classList.remove('hidden'));
-                        iconsToHide.forEach(icon => icon.classList.add('hidden'));
-                        return;
+                const preference = window.matchMedia?.('(prefers-color-scheme: dark)');
+                let savedTheme = null;
+                try { savedTheme = localStorage.getItem('theme'); } catch { /* storage may be blocked */ }
+                if (!['light', 'dark'].includes(savedTheme)) savedTheme = null;
+                const applyTheme = (theme, instant = false) => {
+                    const dark = theme === 'dark';
+                    document.documentElement.classList.toggle('dark', dark);
+                    lightIcons.forEach(icon => icon.classList.toggle('hidden', !dark));
+                    darkIcons.forEach(icon => icon.classList.toggle('hidden', dark));
+                    toggleButtons.forEach(button => button.setAttribute('aria-pressed', String(dark)));
+                    if (canAnimate && !instant) {
+                        motion.killTweensOf([...lightIcons, ...darkIcons]);
+                        motion.fromTo([...lightIcons, ...darkIcons], { rotate: -90, scale: 0.6 },
+                            { rotate: 0, scale: 1, duration: 0.25, overwrite: true });
                     }
-
-                    const tl = gsap.timeline();
-                    tl.to([...lightIcons, ...darkIcons], {
-                        rotate: '+=360',
-                        scale: 0,
-                        duration: 0.3,
-                        ease: 'power2.in',
-                        onComplete: () => {
-                            document.documentElement.classList.toggle('dark', theme === 'dark');
-                            iconsToShow.forEach(icon => icon.classList.remove('hidden'));
-                            iconsToHide.forEach(icon => icon.classList.add('hidden'));
-                        }
-                    }).to([...lightIcons, ...darkIcons], {
-                        rotate: '+=360',
-                        scale: 1,
-                        duration: 0.3,
-                        ease: 'power2.out'
-                    });
                 };
-
-                const savedTheme = localStorage.getItem('theme');
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
-                applyTheme(initialTheme, true);
-
-                toggleButtons.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-                        localStorage.setItem('theme', newTheme);
-                        applyTheme(newTheme);
-                    });
+                applyTheme(savedTheme || (preference?.matches ? 'dark' : 'light'), true);
+                toggleButtons.forEach(button => button.addEventListener('click', () => {
+                    savedTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+                    try { localStorage.setItem('theme', savedTheme); } catch { /* keep the tab usable */ }
+                    applyTheme(savedTheme);
+                }));
+                preference?.addEventListener?.('change', event => {
+                    if (!savedTheme) applyTheme(event.matches ? 'dark' : 'light', true);
                 });
             }
 
@@ -798,104 +789,135 @@
             function initWaitlistModal() {
                 const modal = document.getElementById('waitlist-modal');
                 if (!modal) return;
-
-                const modalTriggers = document.querySelectorAll('[data-modal-trigger]');
-                const closeButton = document.getElementById('modal-close-btn');
-                const successCloseButton = document.getElementById('modal-success-close-btn');
-                const modalContent = document.getElementById('modal-content');
+                const content = document.getElementById('modal-content');
                 const formState = document.getElementById('modal-form-state');
                 const successState = document.getElementById('modal-success-state');
                 const form = document.getElementById('waitlist-form');
-                
-                let lastFocusedElement;
-
-                const openModal = () => {
+                const closeButton = document.getElementById('modal-close-btn');
+                const successCloseButton = document.getElementById('modal-success-close-btn');
+                let isOpen = false, lastFocusedElement = null, previousOverflow = '';
+                const background = [...document.body.children]
+                    .filter(element => element !== modal && element.tagName !== 'SCRIPT')
+                    .map(element => [element, element.hasAttribute('inert')]);
+                const focusable = () => [...modal.querySelectorAll('button, [href], input:not([type="hidden"]), select, textarea, [tabindex]:not([tabindex="-1"])')]
+                    .filter(element => !element.disabled && !element.closest('[hidden]'));
+                const resetForm = () => {
+                    form.reset();
+                    formState.hidden = false;
+                    successState.hidden = true;
+                    formState.style.display = 'block';
+                    successState.style.display = 'none';
+                    for (const state of [formState, successState]) {
+                        state.style.opacity = '1';
+                        state.style.visibility = 'visible';
+                        state.style.transform = 'none';
+                    }
+                    modal.setAttribute('aria-labelledby', 'modal-title');
+                    modal.setAttribute('aria-describedby', 'waitlist-note');
+                };
+                successState.classList.remove('hidden');
+                modal.hidden = true;
+                modal.setAttribute('aria-hidden', 'true');
+                resetForm();
+                const openModal = event => {
+                    event?.preventDefault();
+                    if (isOpen) return;
+                    isOpen = true;
                     lastFocusedElement = document.activeElement;
-                    gsap.to(modal, { autoAlpha: 1, duration: 0.3 });
-                    gsap.fromTo(modalContent, { scale: 0.9, y: 10 }, { scale: 1, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.75)' });
-                    modal.querySelector('input').focus();
+                    previousOverflow = document.body.style.overflow;
+                    document.body.style.overflow = 'hidden';
+                    background.forEach(([element]) => element.setAttribute('inert', ''));
+                    resetForm();
+                    modal.hidden = false;
+                    modal.setAttribute('aria-hidden', 'false');
+                    modal.style.visibility = 'visible';
+                    modal.style.opacity = '1';
+                    content.style.transform = 'none';
+                    if (canAnimate) {
+                        motion.killTweensOf(content);
+                        motion.fromTo(content, { scale: 0.96, y: 8 }, { scale: 1, y: 0, duration: 0.25, overwrite: true });
+                    }
+                    form.querySelector('input')?.focus();
                 };
-
                 const closeModal = () => {
-                    gsap.to(modal, { autoAlpha: 0, duration: 0.3 });
-                    gsap.to(modalContent, { scale: 0.9, y: 10, duration: 0.3, ease: 'power2.in' });
-                    if(lastFocusedElement) lastFocusedElement.focus();
-
-                    setTimeout(() => {
-                        formState.style.display = 'block';
-                        successState.style.display = 'none';
-                        form.reset();
-                    }, 300);
+                    if (!isOpen) return;
+                    isOpen = false;
+                    if (canAnimate) motion.killTweensOf(content);
+                    modal.hidden = true;
+                    modal.setAttribute('aria-hidden', 'true');
+                    document.body.style.overflow = previousOverflow;
+                    background.forEach(([element, wasInert]) => { if (!wasInert) element.removeAttribute('inert'); });
+                    resetForm();
+                    if (lastFocusedElement?.isConnected) lastFocusedElement.focus();
                 };
-
-                modalTriggers.forEach(trigger => trigger.addEventListener('click', openModal));
+                document.querySelectorAll('[data-modal-trigger]').forEach(trigger => trigger.addEventListener('click', openModal));
                 closeButton.addEventListener('click', closeModal);
                 successCloseButton.addEventListener('click', closeModal);
-                
-                window.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape' && modal.style.visibility === 'visible') closeModal();
+                modal.addEventListener('click', event => { if (event.target === modal) closeModal(); });
+                document.addEventListener('keydown', event => {
+                    if (!isOpen) return;
+                    if (event.key === 'Escape') { event.preventDefault(); closeModal(); return; }
+                    if (event.key !== 'Tab') return;
+                    const items = focusable(), first = items[0], last = items.at(-1);
+                    if (!first) { event.preventDefault(); modal.focus(); return; }
+                    if (event.shiftKey && (document.activeElement === first || !modal.contains(document.activeElement))) {
+                        event.preventDefault(); last.focus();
+                    } else if (!event.shiftKey && (document.activeElement === last || !modal.contains(document.activeElement))) {
+                        event.preventDefault(); first.focus();
+                    }
                 });
-
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) closeModal();
+                document.addEventListener('focusin', event => {
+                    if (isOpen && !modal.contains(event.target)) (focusable()[0] || modal).focus();
                 });
-
-                form.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    gsap.timeline()
-                        .to(formState, { autoAlpha: 0, scale: 0.95, duration: 0.3, ease: 'power2.in' })
-                        .set(formState, { display: 'none' })
-                        .set(successState, { display: 'block', autoAlpha: 0, scale: 0.95 })
-                        .to(successState, { autoAlpha: 1, scale: 1, duration: 0.3, ease: 'power2.out' });
+                form.addEventListener('submit', event => {
+                    event.preventDefault();
+                    if (!form.checkValidity()) { form.reportValidity(); return; }
+                    // This repository has no signup backend. Never claim registration.
+                    formState.hidden = true;
+                    formState.style.display = 'none';
+                    successState.hidden = false;
+                    successState.style.display = 'block';
+                    modal.setAttribute('aria-labelledby', 'preview-title');
+                    modal.setAttribute('aria-describedby', 'preview-note');
+                    successCloseButton.focus();
                 });
             }
 
             // --- MOBILE MENU ---
             function initMobileMenu() {
-                const menuButton = document.querySelector('.mobile-menu-button');
-                const mobilePopover = document.querySelector('.mobile-menu-popover');
-                if (!menuButton || !mobilePopover) return;
-
-                gsap.set(mobilePopover, { scale: 0.95, autoAlpha: 0 });
-                const menuTl = gsap.timeline({ paused: true, reversed: true });
-                
-                menuTl.to(mobilePopover, {
-                    scale: 1,
-                    autoAlpha: 1,
-                    duration: 0.2,
-                    ease: 'power1.inOut'
-                });
-
-                menuButton.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    menuButton.classList.toggle('is-open');
-                    menuButton.setAttribute('aria-expanded', menuButton.classList.contains('is-open'));
-                    menuTl.reversed() ? menuTl.play() : menuTl.reverse();
-                });
-
-                const closeMenu = () => {
-                    if (menuTl.progress() > 0) {
-                        menuButton.classList.remove('is-open');
-                        menuButton.setAttribute('aria-expanded', 'false');
-                        menuTl.reverse();
-                    }
+                const button = document.querySelector('.mobile-menu-button');
+                const popover = document.querySelector('.mobile-menu-popover');
+                if (!button || !popover) return;
+                let open = false;
+                if (!popover.id) popover.id = 'mobile-menu';
+                button.setAttribute('aria-controls', popover.id);
+                const setOpen = value => {
+                    open = value;
+                    button.classList.toggle('is-open', open);
+                    button.setAttribute('aria-expanded', String(open));
+                    popover.hidden = !open;
+                    popover.style.visibility = open ? 'visible' : 'hidden';
+                    popover.style.opacity = open ? '1' : '0';
+                    popover.style.transform = 'none';
+                    if (open && canAnimate) motion.fromTo(popover, { scale: 0.96 }, { scale: 1, duration: 0.2, overwrite: true });
                 };
-                
-                mobilePopover.querySelectorAll('a, button').forEach(link => {
-                    if (!link.classList.contains('theme-toggle-btn')) {
-                        link.addEventListener('click', closeMenu);
-                    }
+                setOpen(false);
+                button.addEventListener('click', event => { event.stopPropagation(); setOpen(!open); });
+                popover.querySelectorAll('a, button').forEach(link => {
+                    if (!link.classList.contains('theme-toggle-btn')) link.addEventListener('click', () => setOpen(false));
                 });
-                document.addEventListener('click', (e) => {
-                    if (!mobilePopover.contains(e.target) && !menuButton.contains(e.target)) {
-                        closeMenu();
-                    }
+                document.addEventListener('click', event => {
+                    if (!popover.contains(event.target) && !button.contains(event.target)) setOpen(false);
                 });
-                window.addEventListener('scroll', closeMenu);
+                document.addEventListener('keydown', event => {
+                    if (open && event.key === 'Escape') { event.preventDefault(); setOpen(false); button.focus(); }
+                });
+                window.addEventListener('scroll', () => setOpen(false));
             }
 
             // --- PILL NAV HOVER ANIMATIONS ---
             function initPillNavAnimations() {
+                if (!canAnimate) return;
                 const pills = document.querySelectorAll('.pill');
                 pills.forEach(pill => {
                     const hoverCircle = pill.querySelector('.hover-circle');
@@ -930,6 +952,7 @@
             
             // --- SCROLL-BASED ANIMATIONS ---
             function initScrollBasedAnimations() {
+                if (!canAnimate || typeof ScrollTrigger === 'undefined') return;
                 gsap.registerPlugin(ScrollTrigger);
 
                 // Animate hero text on load
@@ -1043,6 +1066,7 @@
 
              // --- SCROLL-BASED ACTIVE NAV STATE ---
             function initNavObserver() {
+                if (typeof IntersectionObserver !== 'function') return;
                 const sections = document.querySelectorAll('section[id]');
                 const navLinks = document.querySelectorAll('.pill-list .pill');
                 if (sections.length === 0 || navLinks.length === 0) return;
@@ -1090,7 +1114,3 @@
     </script>
 </body>
 </html>
-
-
-
-
